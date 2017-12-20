@@ -10,8 +10,9 @@
         .box {max-width:960px; margin:20px auto;}
         h4 {margin:40px 0 0;}
         pre {padding:5px 10px; margin:5px 0; font-family:consolas; font-size:14px; color:#06c; background:#f5f5f5;}
-        .tip {color:#bbb;}
+        .tip {font-weight:normal; color:#aaa;} .result {color:#090;}
 
+		/* 下拉框样式 */
         .ui-select {
             display: inline-block;
             height: 36px;
@@ -53,8 +54,8 @@
             <select class="ui-select" name="area"></select>
             <select class="ui-select" name="street"></select>
         </div>
-        <h4>二、按行政区划 code 初始化：</h4>
-        <pre>$('#demo2').citySelect({search: 441900401});  <span class="tip">// 广东省东莞市东莞市松山湖管委会</span></pre>
+        <h4>二、按行政区划代码初始化：</h4>
+        <pre>$('#demo2').citySelect({search: 441900401});  <span class="tip">// 广东省东莞市松山湖管委会</span></pre>
         <div id="demo2">
             <select class="ui-select" name="province"></select>
             <select class="ui-select" name="city"></select>
@@ -62,46 +63,73 @@
             <select class="ui-select" name="street"></select>
         </div>
         <h4>三、按地址名称初始化：</h4>
-        <pre>$('#demo3').citySelect({search: '广东省,深圳市,福田区'});</pre>
+        <pre>$('#demo3').citySelect({search: '香港特别行政区,香港岛,湾仔区'});</pre>
         <div id="demo3">
             <select class="ui-select" name="province"></select>
             <select class="ui-select" name="city"></select>
             <select class="ui-select" name="area"></select>
         </div>
-        <h4>四、回调函数：</h4>
+        <h4>四、下拉框 change 回调函数：<span class="tip">当下拉框的值改变时触发，返回当前下拉框的值和对应文字</span></h4>
         <pre>$('#demo4').citySelect({
     onchange: function(code, name) {
-        $('#result').html('当前选择：' + name + '(' + code + ')');
+        $('#result1').html('当前选择：' + name + '(' + code + ')');
     }
 });</pre>
         <div id="demo4">
             <select class="ui-select" name="province"></select>
             <select class="ui-select" name="city"></select>
             <select class="ui-select" name="area"></select>
-            <span id="result"></span>
+            <select class="ui-select" name="street"></select>
+            <p class="result" id="result1"></p>
         </div>
         <h4>五、设置缺省提示语：</h4>
-        <pre>$('#demo5').citySelect({prompt: ['- 省/直辖市 -','- 市 -', '- 区/县 -', '- 乡镇/街道办 -']});</pre>
+        <pre>$('#demo5').citySelect({prompt: ['- 省/直辖市 -', '- 市 -', '- 区/县 -', '- 乡/镇/街道办 -']});</pre>
         <div id="demo5">
             <select class="ui-select" name="province"></select>
             <select class="ui-select" name="city"></select>
-            <select class="ui-select" name="street"></select>
             <select class="ui-select" name="area"></select>
+            <select class="ui-select" name="street"></select>
+		</div>
+		<h4>六、取值：</h4>
+<pre>$('#fetch').click(function() {
+    $('#demo5').citySelect(function(code, nameArr) {
+        $('#result2').html(
+            '行政代码：' + code + '&lt;br&gt;' +
+            '地址：' + nameArr.join('，')
+        );
+    });
+});</pre>
+        <div id="demo5">
+			<div>
+				获取本文例五当前选取的信息：
+				<button id="fetch">获取</button>
+			</div>
+			<p class="result" id="result2">&nbsp;</p>
         </div>
     </div>
 	<script src="jquery-1.11.3.min.js"></script>
 	<script src="city_select.js"></script>
     <script>
         $('#demo1').citySelect();
-        $('#demo1').citySelect();
         $('#demo2').citySelect({search: 441900401});
-        $('#demo3').citySelect({search: '广东省,深圳市,福田区'});
+		$('#demo3').citySelect({search: '香港特别行政区,香港岛,湾仔区'});
         $('#demo4').citySelect({
             onchange: function(code, name) {
-                $('#result').html('当前选择：' + name + '(' + code + ')');
+                $('#result1').html('当前选择：' + name + '(' + code + ')');
             }
         });
-        $('#demo5').citySelect({prompt: ['- 省/直辖市 -','- 市 -', '- 区/县 -', '- 乡镇/街道办 -']});
+		$('#demo5').citySelect({
+			prompt: ['- 省/直辖市 -', '- 市 -', '- 区/县 -', '- 乡/镇/街道办 -']
+		});
+
+		$('#fetch').click(function() {
+			$('#demo5').citySelect(function(code, nameArr) {
+				$('#result2').html(
+					'行政代码：' + code + '<br>' +
+					'地址：' + nameArr.join('，')
+				);
+			});
+		});
     </script>
 </body>
 </html>
