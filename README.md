@@ -1,7 +1,7 @@
 # city-select 中国省、市、县、乡四级行政区级联下拉选取
     @Version: 1.0
     @Author: Wing Meng
-    @Update: 2017-12-19
+    @Update: 2017-12-20
 ---
 
 **[示例 DEMO](https://wingmeng.github.io/city-select/)**
@@ -28,7 +28,18 @@
 	| **dataUrl** | `json/` | json 数据文件的相对路径。 |
 	| **onchange** | `function(){}` | 每一次下拉选取变更后的回调函数，返回当前 change 后下拉框的地址名和行政代码。 |
 
+1. 取值
+
+	```
+    $(Selector).citySelect(function(code, nameArr) {
+        /**
+         * @param {string} code    - 行政代码
+         * @param {array}  nameArr - 地区名称数组
+         */
+    });
+	```
+
 1. 后端对接
 
-	**推荐：** 将最后一个地址下拉框的值（行政代码）传给后台，保存到数据库即可，前端使用时，后台从数据看取出该值，传给前端，前端直接可使用该值初始化 citySelect 插件。<br>
-	还可以将每个地址下拉框当前值对应的文本内容（地区名称）传给后台，保存到数据库，使用时和上一种方法类似，但效率要低得多。
+	**推荐：** 将行政代码传给后台，保存到数据库即可，前端使用时，后台从数据取出该值，传给前端，前端直接使用该值初始化 citySelect 插件，效率简直不要太好 :zap:。<br>
+	还可以将地区名称传给后台，保存到数据库，使用时和上一种方法类似，但效率要低一些。
