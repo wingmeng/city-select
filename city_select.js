@@ -27,6 +27,16 @@
 			onchange: function(){}
 		};
 
+		// 不设区城市（直筒子市）
+		var noAreaCity = {
+			code: [
+				'4419',  // 东莞市
+				'4420',  // 中山市
+				'4604'   // 儋 [dān] 州市
+			],
+			name: ['东莞市', '中山市', '儋州市']
+		};
+
 		var opts = $.extend({}, defaults, options);
 		return this.each(function() {
 			var self = $(this),
@@ -34,6 +44,32 @@
 				listKeyWords = ['province', 'city', 'area', 'street'],
 				listObjs = {};
 
+			// 取值回调
+			if (typeof options === 'function') {
+				var matchedSelects = selects.not(':hidden'),
+					nameArr = [],
+					code = 0;
+
+				matchedSelects.each(function(idx) {
+					if ($(this).val() !== '0') {
+						nameArr.push($(this).find('option:checked').text());
+					}
+				});
+
+				for (var i = matchedSelects.length - 1; i >= 0; i--) {
+					var curSelect = matchedSelects.eq(i);
+
+					if (curSelect.val() !== '0') {
+						code = curSelect.val();
+						break;
+					}
+				}
+
+				options(code, nameArr);
+				return;
+			}
+
+			// 启动加载状态
 			selects.prop('disabled', true)
 				.html('<option>' + opts.loading + '</option>');
 
@@ -44,7 +80,10 @@
 			var _factory = {
 				// 构建
 				build: function(typeStr, dataArr) {
-					var html = '';
+					var html = '',
+						curSelect = listObjs[typeStr],
+						hasDataArr = dataArr && dataArr.length ? true : false;
+
 					if (opts.prompt) {
 						var prompt;
 
@@ -57,33 +96,44 @@
 						html = '<option value="0">' + (prompt || defaults.prompt) + '</option>';
 					}
 
-					if (dataArr) {
+					if (hasDataArr) {
 						for (var i = 0; i < dataArr.length; i++) {
 							html += '<option value="' + dataArr[i].code + '">'
 								+      dataArr[i].name
 								+  '</option>';
 						}
+
+						curSelect.show();
+					} else {
+						curSelect.hide();
 					}
 
-					if (listObjs[typeStr].length) {
-						listObjs[typeStr].html(html);
-						return listObjs[typeStr];
+					if (curSelect) {
+						curSelect.html(html);
+
+						if (typeStr === listKeyWords[2] && hasDataArr) {  // area
+							if (noAreaCity.code.indexOf(dataArr[0].parent) > -1) {  // 不设区城市（直筒子市处理）
+								curSelect.hide().val(dataArr[0].code);
+							}
+						}
+
+						return curSelect;
 					}
 				},
 
 				// 返回 code 匹配的数据
-				matchCode: function(data, code) {
+				matchCode: function(data, parentCode) {
 					if (!data) {
 						return;
 					}
 
 					return Array.prototype.filter ? data.filter(function(item) {
-						return item.parent_code === code;
+						return item.parent === parentCode;
 					}) : null || (function() {  // 不支持 filter 方法的处理
 						var arr = [];
 
 						for (var i = 0; i < data.length; i++) {
-							if (data[i].parent_code === code) {
+							if (data[i].parent === parentCode) {
 								arr.push(data[i]);
 							}
 						}
@@ -103,7 +153,7 @@
 					for (var i = 0; i < data.length; i++) {
 						if (data[i].name === name) {
 							result.code = data[i].code;
-							result.parent_code = data[i].parent_code;
+							result.parent = data[i].parent;
 							break;
 						}
 					}
@@ -112,9 +162,10 @@
 				},
 
 				// 绑定 change 事件
-				bind: function(typeStr, data) {
+				bindChange: function(typeStr, data) {
 					listObjs[typeStr].on('change', function() {
-						var code = $(this).val(),
+						var self = $(this),
+							code = self.val(),
 							idx = listKeyWords.indexOf(typeStr);
 
 						for (var i = idx; i < listKeyWords.length; i++) {
@@ -127,13 +178,19 @@
 							var curData = i === idx ? _factory.matchCode(data[key], code)
 													: null;
 
-							_factory.build(key, curData);
+							if (typeStr === listKeyWords[1] && key === listKeyWords[3]) {  // city && street
+								if (noAreaCity.code.indexOf(code) > -1) {  // 不设区城市（直筒子市处理）
+									curData = _factory.matchCode(data[key], code + '00');
+								}
+							}
+
+							_factory.build(key, curData);  // 构建下一级
 						}
 
 						if (typeof opts.onchange === 'function') {
 							opts.onchange(
 								code,
-								$(this).find('option[value="' + code + '"]').text()
+								self.find('option[value="' + code + '"]').text()
 							);
 						}
 					});
@@ -221,20 +278,25 @@
 
 								_factory.build(key, curData).val(search.data[i]);
 							} else if (search.type === 'name') {
+								if (key === listKeyWords[1]) {
+									if (noAreaCity.name.indexOf(search.data[i]) > -1) {
+										search.data.splice(i, 0, search.data[i]);  // 不设区城市（直筒子市重复插入一项）
+									}
+								}
+
 								var matchedCode = _factory.matchName(curData, search.data[i]);
 
 								if (i > 0) {
-									curData = _factory.matchCode(data[key], matchedCode.parent_code);
+									curData = _factory.matchCode(data[key], matchedCode.parent);
 								}
 
 								_factory.build(key, curData).val(matchedCode.code);
 							}
-
 						} else {  // 默认初始化
 							_factory.build(key, (i === 0 ? curData : null));
 						}
 
-						_factory.bind(key, data);
+						_factory.bindChange(key, data);
 					}
 				}
 			});
