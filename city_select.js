@@ -258,7 +258,7 @@
 				if (opts.search) {
 					if (isNaN(opts.search)) {  // 地址字符串
 						search.type = 'name';
-						search.data = opts.search.split(',');
+						search.data = opts.search.split(/[,|\s+]/);
 					} else {  // 行政区划code
 						search.type = 'code';
 						search.data = getCodeArr(opts.search);
